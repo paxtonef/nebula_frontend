@@ -6,7 +6,8 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "vercel-build": "npm install --legacy-peer-deps && npm run build"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",
