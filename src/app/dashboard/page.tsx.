@@ -1,0 +1,249 @@
+'use client';
+
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { useEffect } from 'react';
+import Link from 'next/link';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import { useConnections } from '@/hooks/useConnections';
+import { useConnectionRequests } from '@/hooks/useConnectionRequests';
+import { useRecommendedBusinesses } from '@/hooks/useRecommendedBusinesses';
+import ConnectionCard from '@/components/dashboard/ConnectionCard';
+import ConnectionRequestCard from '@/components/dashboard/ConnectionRequestCard';
+import RecommendedBusinessCard from '@/components/dashboard/RecommendedBusinessCard';
+import QuickActions from '@/components/dashboard/QuickActions';
+import ProfileCompletion from '@/components/dashboard/ProfileCompletion';
+import BusinessMetrics from '@/components/dashboard/BusinessMetrics';
+import BusinessOpportunities from '@/components/dashboard/BusinessOpportunities';
+import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
+import SimpleAnalytics from '@/components/dashboard/SimpleAnalytics';
+
+export default function Dashboard() {
+  const { user, error: authError, isLoading: authLoading } = useUser();
+  
+  // Fetch data using our custom hooks
+  const { connections, isLoading: connectionsLoading } = useConnections({ limit: 3 });
+  const { requests, isLoading: requestsLoading, acceptRequest, rejectRequest } = useConnectionRequests({ limit: 2 });
+  const { businesses, isLoading: businessesLoading } = useRecommendedBusinesses({ limit: 3 });
+  
+  // Mock profile completion steps
+  const profileSteps = [
+    { id: '1', label: 'Basic Information', completed: true, href: '/profile/basic' },
+    { id: '2', label: 'Business Details', completed: true, href: '/profile/business' },
+    { id: '3', label: 'Add Logo & Images', completed: false, href: '/profile/media' },
+    { id: '4', label: 'Services & Products', completed: false, href: '/profile/offerings' },
+    { id: '5', label: 'Verify Business', completed: false, href: '/profile/verification' },
+  ];
+  
+  useEffect(() => {
+    if (!authLoading && !user) {
+      window.location.href = '/api/auth/login';
+    }
+  }, [user, authLoading]);
+
+  if (authLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+
+  if (authError) {
+    return <div className="flex justify-center items-center h-screen">Error: {authError.message}</div>;
+  }
+
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
+
+  return (
+    <AuthenticatedLayout>
+      <div className="py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-semibold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Welcome back, {user?.name || 'User'}! Here's what's happening with your network.
+          </p>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          {/* Quick Actions */}
+          <QuickActions />
+          
+          {/* Business Metrics */}
+          <div className="mt-8">
+            <BusinessMetrics />
+          </div>
+          
+          {/* Business Opportunities */}
+          <div className="mt-8">
+            <BusinessOpportunities />
+          </div>
+          
+          {/* Main Dashboard Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+            {/* Left Column - Connections and Recommendations */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Profile Completion */}
+              <ProfileCompletion steps={profileSteps} />
+              
+              {/* Recent Connections */}
+              <div className="bg-gradient-to-br from-white to-primary-50 shadow-md rounded-xl">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg leading-6 font-medium bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Recent Connections</h2>
+                  <Link href="/connections" className="text-sm text-primary-600 hover:text-primary-800 transition-colors duration-200">
+                    View all
+                  </Link>
+                </div>
+                <div className="border-t border-primary-100">
+                  {connectionsLoading ? (
+                    <div className="p-6 text-center">Loading connections...</div>
+                  ) : connections.length > 0 ? (
+                    <div>
+                      {connections.map((connection) => (
+                        <ConnectionCard
+                          key={connection.id}
+                          id={connection.id}
+                          businessName={connection.businessName}
+                          industry={connection.industry}
+                          location={connection.location}
+                          logoUrl={connection.logoUrl}
+                          connectionDate={connection.connectionDate}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-gray-500">
+                      <p>No connections yet</p>
+                      <p className="mt-2">Start building your network by searching for businesses</p>
+                      <Link href="/businesses" className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+                        Find Businesses
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Recommended Businesses */}
+              <div className="bg-gradient-to-br from-white to-primary-50 shadow-md rounded-xl">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg leading-6 font-medium bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Recommended Businesses</h2>
+                  <Link href="/businesses" className="text-sm text-primary-600 hover:text-primary-800 transition-colors duration-200">
+                    View all
+                  </Link>
+                </div>
+                <div className="border-t border-primary-100">
+                  {businessesLoading ? (
+                    <div className="p-6 text-center">Loading recommendations...</div>
+                  ) : businesses.length > 0 ? (
+                    <div>
+                      {businesses.map((business) => (
+                        <RecommendedBusinessCard
+                          key={business.id}
+                          id={business.id}
+                          businessName={business.businessName}
+                          industry={business.industry}
+                          location={business.location}
+                          logoUrl={business.logoUrl}
+                          matchScore={business.matchScore}
+                          description={business.description}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-gray-500">
+                      <p>Complete your business profile to get personalized recommendations</p>
+                      <Link href="/profile" className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+                        Complete Profile
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Simple Analytics */}
+              <SimpleAnalytics 
+                title="Business Analytics" 
+                description="Performance insights and connection statistics" 
+              />
+            </div>
+            
+            {/* Right Column */}
+            <div className="space-y-8">
+              {/* Connection Requests */}
+              <div className="bg-gradient-to-br from-white to-primary-50 shadow-md rounded-xl">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg leading-6 font-medium bg-gradient-to-r from-secondary-600 to-primary-600 bg-clip-text text-transparent">Connection Requests</h2>
+                  {requests.length > 0 && (
+                    <span className="bg-secondary-100 text-secondary-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">
+                      {requests.length} new
+                    </span>
+                  )}
+                </div>
+                <div className="border-t border-primary-100">
+                  {requestsLoading ? (
+                    <div className="p-6 text-center">Loading requests...</div>
+                  ) : requests.length > 0 ? (
+                    <div>
+                      {requests.map((request) => (
+                        <ConnectionRequestCard
+                          key={request.id}
+                          id={request.id}
+                          businessName={request.businessName}
+                          industry={request.industry}
+                          location={request.location}
+                          logoUrl={request.logoUrl}
+                          requestDate={request.requestDate}
+                          message={request.message}
+                          onAccept={acceptRequest}
+                          onReject={rejectRequest}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-gray-500">
+                      <p>No pending requests</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Notifications Panel */}
+              <NotificationsPanel />
+              
+              {/* Recent Activity */}
+              <div className="bg-gradient-to-br from-white to-accent-50 shadow-md rounded-xl">
+                <div className="px-4 py-5 sm:px-6">
+                  <h2 className="text-lg leading-6 font-medium bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent">Recent Activity</h2>
+                </div>
+                <div className="border-t border-accent-100 px-4 py-5 sm:p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-2 w-2 mt-1.5 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500"></div>
+                      <div className="ml-3">
+                        <p className="text-sm text-gray-700">Your profile was viewed by <span className="font-medium">TechSolutions GmbH</span></p>
+                        <p className="text-xs text-gray-500">2 hours ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-2 w-2 mt-1.5 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500"></div>
+                      <div className="ml-3">
+                        <p className="text-sm text-gray-700">Your trust score increased to <span className="font-medium">78</span></p>
+                        <p className="text-xs text-gray-500">1 day ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-2 w-2 mt-1.5 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500"></div>
+                      <div className="ml-3">
+                        <p className="text-sm text-gray-700">New businesses matching your profile were added</p>
+                        <p className="text-xs text-gray-500">3 days ago</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AuthenticatedLayout>
+  );
+}

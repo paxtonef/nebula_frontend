@@ -1,0 +1,1215 @@
+// src/app/dashboard/page.tsx - Enhanced Professional Dashboard
+'use client';
+
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { BusinessCard, StatCard } from '@/components/ui/card';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+// Types
+interface FilterOptions {
+  connectionType: string;
+  sortBy: string;
+  businessType: string;
+  industry: string;
+}
+
+// Simple components for missing references
+const LoadingState = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <LoadingSpinner />
+  </div>
+);
+
+const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => (
+  <div title={text}>{children}</div>
+);
+import { 
+  Building2, 
+  Users2, 
+  TrendingUp, 
+  Bell, 
+  Search, 
+  Plus,
+  Shield,
+  Star,
+  MessageSquare,
+  BarChart3,
+  UserPlus,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Globe,
+  Mail,
+  Phone,
+  Calendar,
+  Target,
+  Award,
+  Activity,
+  Settings,
+  Filter,
+  Send,
+  Eye,
+  Crown,
+  Zap,
+  TrendingDown,
+  ExternalLink,
+  Download,
+  Upload,
+  RefreshCw,
+  Users,
+  CheckCircle,
+  Building,
+  Menu,
+  X,
+  MessageCircle,
+  AlertCircle
+} from 'lucide-react';
+
+// Enhanced European SME focused data
+const mockBusinessProfile = {
+  business_id: 'bus_123',
+  name: 'TechSolutions Europe',
+  description: 'Leading digital transformation partner for European SMEs across France, Italy & UK',
+  industry: 'Technology',
+  size: 'medium',
+  size: 'small',
+  country: 'France',
+  city: 'Paris',
+  website: 'https://techsolutions.fr',
+  email: 'contact@techsolutions.fr',
+  phone: '+33 1 23 45 67 89',
+  verification_status: 'verified',
+  trust_score: 85,
+  founded: '2020',
+  employees: '25-50'
+};
+
+const mockConnections = [
+  {
+    connection_id: 'conn_1',
+    business: { 
+      name: 'Digital Marketing Pro', 
+      industry: 'Marketing', 
+      city: 'Lyon', 
+      country: 'France',
+      trust_score: 92,
+      employees: '10-25',
+      logo: 'DM'
+    },
+    connection_type: 'partner',
+    status: 'accepted',
+    established_date: '2024-01-15',
+    last_interaction: '2024-05-20'
+  },
+  {
+    connection_id: 'conn_2', 
+    business: { 
+      name: 'Supply Chain Italia', 
+      industry: 'Logistics', 
+      city: 'Milan', 
+      country: 'Italy',
+      trust_score: 88,
+      employees: '50-100',
+      logo: 'SC'
+    },
+    connection_type: 'supplier',
+    status: 'accepted',
+    established_date: '2024-02-03',
+    last_interaction: '2024-05-18'
+  },
+  {
+    connection_id: 'conn_3',
+    business: { 
+      name: 'UK Manufacturing Ltd', 
+      industry: 'Manufacturing', 
+      city: 'Manchester', 
+      country: 'UK',
+      trust_score: 90,
+      employees: '100+',
+      logo: 'UM'
+    },
+    connection_type: 'customer',
+    status: 'accepted',
+    established_date: '2024-02-20',
+    last_interaction: '2024-05-19'
+  }
+];
+
+const mockConnectionRequests = [
+  {
+    requester: { 
+      name: 'Green Energy Solutions', 
+      industry: 'Energy', 
+      city: 'Barcelona', 
+      country: 'Spain',
+      trust_score: 87,
+      employees: '25-50',
+      logo: 'GE'
+    },
+    connection_type: 'partner',
+    message: 'We\'d like to explore partnership opportunities in renewable energy tech.',
+    requested_date: '2024-05-18'
+  },
+  {
+    requester: { 
+      name: 'French Retail Chain', 
+      industry: 'Retail', 
+      city: 'Nice', 
+      country: 'France',
+      trust_score: 83,
+      employees: '100+',
+      logo: 'FR'
+    },
+    connection_type: 'customer',
+    message: 'Interested in your e-commerce solutions for our retail network.',
+    requested_date: '2024-05-17'
+  }
+];
+
+const mockBusinessSuggestions = [
+  {
+    name: 'AI Innovations GmbH',
+    industry: 'Technology',
+    city: 'Berlin',
+    country: 'Germany',
+    trust_score: 94,
+    employees: '50-100',
+    match_reason: 'Similar industry, high trust score, AI expertise',
+    connection_type: 'partner',
+    logo: 'AI'
+  },
+  {
+    name: 'Mediterranean Logistics',
+    industry: 'Logistics', 
+    city: 'Rome',
+    country: 'Italy',
+    trust_score: 89,
+    employees: '25-50',
+    match_reason: 'Complementary services, good location match',
+    connection_type: 'supplier',
+    logo: 'ML'
+  },
+  {
+    name: 'Nordic Software House',
+    industry: 'Technology',
+    city: 'Stockholm',
+    country: 'Sweden',
+    trust_score: 91,
+    employees: '10-25',
+    match_reason: 'Similar size, complementary expertise',
+    connection_type: 'partner',
+    logo: 'NS'
+  }
+];
+
+const mockReviews = [
+  {
+    reviewer: 'Digital Marketing Pro',
+    reviewer_logo: 'DM',
+    rating: 5,
+    review_text: 'Excellent collaboration on our e-commerce platform. Highly reliable and delivered on time.',
+    review_type: 'collaboration',
+    created_at: '2024-02-28'
+  },
+  {
+    reviewer: 'Supply Chain Italia',
+    reviewer_logo: 'SC',
+    rating: 4,
+    review_text: 'Good technical expertise and responsive communication. Would recommend.',
+    review_type: 'reliability', 
+    created_at: '2024-02-15'
+  },
+  {
+    reviewer: 'UK Manufacturing Ltd',
+    reviewer_logo: 'UM',
+    rating: 5,
+    review_text: 'Outstanding software solution that improved our production efficiency by 30%.',
+    review_type: 'general',
+    created_at: '2024-03-10'
+  }
+];
+
+const recentActivities = [
+  {
+    type: 'connection',
+    title: 'New connection with Digital Marketing Pro',
+    time: '2 hours ago',
+    icon: Users,
+    color: 'bg-green-500'
+  },
+  {
+    type: 'review',
+    title: 'Received 5-star review from UK Manufacturing Ltd',
+    time: '1 day ago',
+    icon: Star,
+    color: 'bg-blue-500'
+  },
+  {
+    type: 'request',
+    title: 'Connection request from Green Energy Solutions',
+    time: '2 days ago',
+    icon: UserPlus,
+    color: 'bg-yellow-500'
+  },
+  {
+    type: 'profile',
+    title: 'Profile verification completed',
+    time: '3 days ago',
+    icon: CheckCircle,
+    color: 'bg-purple-500'
+  },
+  {
+    type: 'match',
+    title: 'New business match: AI Innovations GmbH',
+    time: '4 days ago',
+    icon: Target,
+    color: 'bg-indigo-500'
+  }
+];
+
+export default function Dashboard() {
+  // Enhanced state management
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    connectionType: 'all',
+    sortBy: 'recent',
+    businessType: 'all',
+    industry: 'all'
+  });
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterName: string, value: string) => {
+    setFilterOptions(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+  }, []);
+  
+  // Handle search input changes
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+  
+  // Export connections data to CSV
+  const handleExportData = useCallback(() => {
+    // In a real app, this might come from an API
+    const data = mockConnections
+      .filter(conn => {
+        if (filterOptions.connectionType !== 'all') {
+          return conn.connection_type === filterOptions.connectionType;
+        }
+        return true;
+      })
+      .map(conn => ({
+        business_name: conn.business.name,
+        type: conn.connection_type,
+        industry: conn.business.industry,
+        location: conn.business.city + ', ' + conn.business.country,
+        connected_since: conn.established_date
+      }));
+    
+    // Create CSV content
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(obj => Object.values(obj).join(','));
+    const csvContent = [headers, ...rows].join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nebula_connections_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  }, [filterOptions]);
+  
+  // Filter connections based on search and filters
+  const filteredConnections = useMemo(() => {
+    return mockConnections.filter(connection => {
+      // Filter by connection type
+      if (filterOptions.connectionType !== 'all' && 
+          connection.connection_type !== filterOptions.connectionType) {
+        return false;
+      }
+      
+      // Filter by search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          connection.business.name.toLowerCase().includes(query) ||
+          connection.business.industry.toLowerCase().includes(query) ||
+          connection.business.city.toLowerCase().includes(query) ||
+          connection.business.country.toLowerCase().includes(query)
+        );
+      }
+      
+      return true;
+    });
+  }, [mockConnections, filterOptions, searchQuery]);
+  
+  // Filter business suggestions
+  const filteredSuggestions = useMemo(() => {
+    return mockBusinessSuggestions.filter(business => {
+      // Filter by business type
+      if (filterOptions.businessType !== 'all' && 
+          business.connection_type !== filterOptions.businessType) {
+        return false;
+      }
+      
+      // Filter by industry
+      if (filterOptions.industry !== 'all' && 
+          business.industry !== filterOptions.industry) {
+        return false;
+      }
+      
+      // Filter by search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          business.name.toLowerCase().includes(query) ||
+          business.industry.toLowerCase().includes(query) ||
+          (business.city && business.city.toLowerCase().includes(query))
+        );
+      }
+      
+      return true;
+    });
+  }, [mockBusinessSuggestions, filterOptions, searchQuery]);
+  
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Focus search with '/' key
+      if (e.key === '/' && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      
+      // Switch tabs with number keys 1-5
+      if (!['1', '2', '3', '4', '5'].includes(e.key) || 
+          e.ctrlKey || e.metaKey || e.altKey || 
+          ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '')) {
+        return;
+      }
+      
+      e.preventDefault();
+      const tabMap: {[key: string]: string} = {
+        '1': 'overview',
+        '2': 'connections',
+        '3': 'discover',
+        '4': 'requests',
+        '5': 'reviews'
+      };
+      setActiveTab(tabMap[e.key]);
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  
+  // Close notifications panel when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    
+    if (isNotificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
+  
+  // Simulate loading on initial render
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // If loading, show loading state
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+
+
+  const NetworkVisualization = () => (
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">Network Overview</h3>
+        <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+          View Full Network
+          <ArrowRight className="h-4 w-4 ml-1" />
+        </button>
+      </div>
+      
+      {/* Interactive Network Visualization */}
+      <div className="relative h-80 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-hidden">
+        {/* Central node (Your business) */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+            TS
+          </div>
+          <div className="text-center mt-2">
+            <p className="text-sm font-medium text-gray-900">Your Business</p>
+          </div>
+        </div>
+        
+        {/* Connected nodes */}
+        {[
+          { x: '25%', y: '25%', name: 'Digital Marketing', type: 'partner', color: 'bg-purple-500', initials: 'DM' },
+          { x: '75%', y: '25%', name: 'Supply Chain IT', type: 'supplier', color: 'bg-green-500', initials: 'SC' },
+          { x: '25%', y: '75%', name: 'UK Manufacturing', type: 'customer', color: 'bg-orange-500', initials: 'UM' },
+          { x: '75%', y: '75%', name: 'AI Innovations', type: 'prospect', color: 'bg-gray-400', initials: 'AI' }
+        ].map((node, index) => (
+          <div key={index} className="absolute" style={{ top: node.y, left: node.x, transform: 'translate(-50%, -50%)' }}>
+            {/* Connection line */}
+            <svg className="absolute top-1/2 left-1/2 w-32 h-32 pointer-events-none" style={{ 
+              transform: 'translate(-50%, -50%)',
+              zIndex: 0
+            }}>
+              <line 
+                x1="64" y1="64" 
+                x2={index === 0 ? "96" : index === 1 ? "32" : index === 2 ? "96" : "32"} 
+                y2={index === 0 ? "96" : index === 1 ? "96" : index === 2 ? "32" : "32"}
+                stroke="#e2e8f0" 
+                strokeWidth="2"
+                strokeDasharray={node.type === 'prospect' ? "5,5" : "0"}
+              />
+            </svg>
+            
+            {/* Node */}
+            <div className={`w-12 h-12 ${node.color} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg relative z-10`}>
+              {node.initials}
+            </div>
+            <div className="text-center mt-1">
+              <p className="text-xs font-medium text-gray-700">{node.name}</p>
+              <p className="text-xs text-gray-500">{node.type}</p>
+            </div>
+          </div>
+        ))}
+        
+        {/* Network stats */}
+        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3">
+          <div className="flex items-center space-x-4 text-sm">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-blue-600 rounded-full mr-1"></div>
+              <span className="text-gray-700">Your Business</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+              <span className="text-gray-700">Active ({mockConnections.length})</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-gray-400 rounded-full mr-1"></div>
+              <span className="text-gray-700">Prospects (5)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Quick stats */}
+      <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">{mockConnections.length}</div>
+          <div className="text-sm text-gray-600">Active Connections</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">85%</div>
+          <div className="text-sm text-gray-600">Trust Score</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-purple-600">12</div>
+          <div className="text-sm text-gray-600">Industries</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Enhanced Header with Mobile Responsiveness */}
+      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center">
+              {/* Mobile menu button */}
+              <button 
+                className="sm:hidden mr-2 p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+              >
+                <span className="sr-only">{isMobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
+                {isMobileMenuOpen ? (
+                  <X className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+              
+              {/* Logo */}
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Building className="h-5 w-5 text-white" />
+                </div>
+                <span className="ml-3 text-xl font-bold text-gray-900">Nebula</span>
+                <span className="ml-2 text-sm text-gray-500 font-medium hidden sm:inline">Business Network</span>
+              </div>
+            </div>
+            
+            {/* Desktop Search Bar */}
+            <div className="hidden md:block flex-1 max-w-md mx-8">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder="Search (Press '/' to focus)"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Notifications Button */}
+              <div className="relative" ref={notificationsRef}>
+                <Tooltip text="Notifications">
+                  <button 
+                    className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                    aria-expanded={isNotificationsOpen}
+                    aria-haspopup="true"
+                  >
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                      {recentActivities.length}
+                    </span>
+                  </button>
+                </Tooltip>
+                
+                {/* Notifications Panel */}
+                {isNotificationsOpen && (
+                  <div 
+                    className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="notifications-menu"
+                  >
+                    <div className="py-1" role="none">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <h3 className="text-sm font-medium text-gray-900">Recent Activity</h3>
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {recentActivities.map((activity, index) => (
+                          <div 
+                            key={index} 
+                            className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                            role="menuitem"
+                          >
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0 mr-3">
+                                {activity.type === 'connection' && <UserPlus className="h-5 w-5 text-blue-500" />}
+                                {activity.type === 'message' && <MessageCircle className="h-5 w-5 text-green-500" />}
+                                {activity.type === 'review' && <Star className="h-5 w-5 text-yellow-500" />}
+                                {activity.type === 'alert' && <AlertCircle className="h-5 w-5 text-red-500" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-800">{activity.title}</p>
+                                <p className="text-xs text-gray-500">{activity.time}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="px-4 py-2 border-t border-gray-100">
+                        <a href="#" className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center">
+                          View all notifications
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Settings Button */}
+              <Tooltip text="Settings">
+                <button className="hidden sm:block p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  <span className="sr-only">Settings</span>
+                  <Settings className="h-5 w-5" />
+                </button>
+              </Tooltip>
+              
+              {/* User Avatar */}
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hover:opacity-90 cursor-pointer">
+                  <span className="text-white text-sm font-medium">TS</span>
+                </div>
+                <span className="ml-2 text-gray-700 font-medium hidden sm:inline">Tech Solutions Ltd</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="sm:hidden" id="mobile-menu">
+            <div className="px-2 pt-2 pb-3 space-y-3 bg-white border-t border-gray-200">
+              {/* Mobile Search */}
+              <div className="px-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Search"
+                    type="search"
+                  />
+                </div>
+              </div>
+              
+              {/* Mobile Navigation Buttons */}
+              <button 
+                onClick={() => {
+                  setActiveTab('overview');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'overview' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
+                <Building className="mr-3 h-5 w-5" />
+                Overview
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setActiveTab('connections');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'connections' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
+                <Users className="mr-3 h-5 w-5" />
+                Connections
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setActiveTab('discover');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'discover' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
+                <TrendingUp className="mr-3 h-5 w-5" />
+                Discover
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setActiveTab('requests');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'requests' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
+                <UserPlus className="mr-3 h-5 w-5" />
+                Requests
+                <span className="ml-auto bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs font-medium">3</span>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setActiveTab('reviews');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'reviews' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
+                <Star className="mr-3 h-5 w-5" />
+                Reviews
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8">
+            {[
+              { id: 'overview', label: 'Overview', icon: BarChart3 },
+              { id: 'connections', label: 'My Network', icon: Users },
+              { id: 'discover', label: 'Discover', icon: Search },
+              { id: 'requests', label: 'Requests', icon: UserPlus, badge: mockConnectionRequests.length },
+              { id: 'reviews', label: 'Reviews', icon: Star }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center px-3 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <tab.icon className="h-4 w-4 mr-2" />
+                {tab.label}
+                {tab.badge && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content - Wrapped with ErrorBoundary */}
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <ErrorBoundary>
+          <div className="px-4 py-6 sm:px-0">
+          
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              {/* Business Profile Summary */}
+              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-start">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                      TS
+                    </div>
+                    <div className="ml-6">
+                      <div className="flex items-center">
+                        <h1 className="text-3xl font-bold text-gray-900">{mockBusinessProfile.name}</h1>
+                        {mockBusinessProfile.verification_status === 'verified' && (
+                          <CheckCircle className="ml-3 h-7 w-7 text-green-500" />
+                        )}
+                      </div>
+                      <p className="text-gray-600 mt-2 text-lg">{mockBusinessProfile.description}</p>
+                      <div className="flex items-center mt-4 space-x-6 text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <Building className="h-4 w-4 mr-1" />
+                          {mockBusinessProfile.industry}
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {mockBusinessProfile.city}, {mockBusinessProfile.country}
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-1" />
+                          {mockBusinessProfile.employees} employees
+                        </div>
+                        <div className="flex items-center">
+                          <Globe className="h-4 w-4 mr-1" />
+                          <a href={mockBusinessProfile.website} className="text-blue-600 hover:underline">
+                            Website
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center justify-end">
+                      <Shield className="h-6 w-6 text-green-500 mr-2" />
+                      <span className="text-3xl font-bold text-green-600">{mockBusinessProfile.trust_score}</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">Trust Score</p>
+                    <div className="mt-3">
+                      <Award className="h-5 w-5 text-yellow-500 mx-auto" />
+                      <p className="text-xs text-yellow-600 mt-1">Verified Business</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                  icon={Users}
+                  title="Active Connections"
+                  value={mockConnections.length}
+                  color="bg-blue-500"
+                  subtitle="3 new this month"
+                  trend="+12%"
+                />
+                <StatCard
+                  icon={UserPlus}
+                  title="Pending Requests"
+                  value={mockConnectionRequests.length}
+                  color="bg-orange-500"
+                  subtitle="Awaiting response"
+                />
+                <StatCard
+                  icon={Star}
+                  title="Average Rating"
+                  value="4.7"
+                  color="bg-yellow-500"
+                  subtitle={`From ${mockReviews.length} reviews`}
+                  trend="+0.2"
+                />
+                <StatCard
+                  icon={TrendingUp}
+                  title="Profile Views"
+                  value="147"
+                  color="bg-green-500"
+                  subtitle="This week"
+                  trend="+23%"
+                />
+              </div>
+
+              {/* Network Visualization */}
+              <NetworkVisualization />
+
+              {/* Recent Activity */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Activity className="h-5 w-5 mr-2 text-blue-600" />
+                    Recent Activity
+                  </h3>
+                  <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {recentActivities.map((activity, index) => (
+                    <div key={index} className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                      <div className={`w-10 h-10 ${activity.color} rounded-full flex items-center justify-center`}>
+                        <activity.icon className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-xs text-gray-500 flex items-center mt-1">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {activity.time}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Connections Tab - Enhanced with Filtering and Export */}
+          {activeTab === 'connections' && (
+            <ErrorBoundary>
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <h2 className="text-2xl font-bold text-gray-900">My Network</h2>
+                  <div className="flex flex-wrap gap-3">
+                    <button 
+                      onClick={handleExportData}
+                      className="flex items-center px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                      aria-label="Export connections to CSV"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export CSV
+                    </button>
+                    <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Connection
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Enhanced Filters */}
+                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <label htmlFor="connection-search" className="block text-sm font-medium text-gray-700 mb-1">Search Connections</label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          id="connection-search"
+                          type="text"
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          placeholder="Search by name, industry, location..."
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div>
+                        <label htmlFor="connection-type" className="block text-sm font-medium text-gray-700 mb-1">Connection Type</label>
+                        <select
+                          id="connection-type"
+                          value={filterOptions.connectionType}
+                          onChange={(e) => handleFilterChange('connectionType', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                        >
+                          <option value="all">All Types</option>
+                          <option value="supplier">Suppliers</option>
+                          <option value="customer">Customers</option>
+                          <option value="partner">Partners</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                        <select
+                          id="sort-by"
+                          value={filterOptions.sortBy}
+                          onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                        >
+                          <option value="recent">Recently Added</option>
+                          <option value="name">Business Name</option>
+                          <option value="interaction">Last Interaction</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      Showing <span className="font-medium">{filteredConnections.length}</span> connections
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setSearchQuery('');
+                        setFilterOptions({
+                          connectionType: 'all',
+                          sortBy: 'recent',
+                          businessType: 'all',
+                          industry: 'all'
+                        });
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Reset Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Connection Cards with Filtering and Empty State */}
+              {filteredConnections.length > 0 ? (
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                  {filteredConnections
+                    .sort((a, b) => {
+                      if (filterOptions.sortBy === 'name') {
+                        return a.business.name.localeCompare(b.business.name);
+                      } else if (filterOptions.sortBy === 'interaction') {
+                        return new Date(b.last_interaction).getTime() - new Date(a.last_interaction).getTime();
+                      } else {
+                        // Default: recent
+                        return new Date(b.established_date).getTime() - new Date(a.established_date).getTime();
+                      }
+                    })
+                    .map(connection => (
+                      <BusinessCard
+                        key={connection.connection_id}
+                        business={connection.business}
+                        connectionType={connection.connection_type}
+                        showActions={true}
+                      />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-100">
+                  <Filter className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No matching connections</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search or filters to find what you're looking for.</p>
+                  <button 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setFilterOptions({
+                        connectionType: 'all',
+                        sortBy: 'recent',
+                        businessType: 'all',
+                        industry: 'all'
+                      });
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Reset Filters
+                  </button>
+                </div>
+              )}
+            </div>
+            </ErrorBoundary>
+          )}
+
+          {/* Discover Tab */}
+          {activeTab === 'discover' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900">Discover Businesses</h2>
+                <div className="flex space-x-3">
+                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                    <option>All Industries</option>
+                    <option>Technology</option>
+                    <option>Manufacturing</option>
+                    <option>Energy</option>
+                    <option>Logistics</option>
+                  </select>
+                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                    <option>All Countries</option>
+                    <option>France</option>
+                    <option>Italy</option>
+                    <option>Germany</option>
+                    <option>UK</option>
+                  </select>
+                  <button className="flex items-center px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Target className="h-4 w-4 mr-2" />
+                    AI Match
+                  </button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                {mockBusinessSuggestions.map((business, index) => (
+                  <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold">{business.name}</h3>
+                    <p className="text-gray-600">{business.industry}</p>
+                    <p className="text-sm text-gray-500">{business.city}, {business.country}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Requests Tab */}
+          {activeTab === 'requests' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900">Connection Requests</h2>
+                <div className="text-sm text-gray-500">
+                  {mockConnectionRequests.length} pending requests
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {mockConnectionRequests.map((request, index) => (
+                  <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-start flex-1">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                          {request.requester.logo}
+                        </div>
+                        <div className="ml-4 flex-1">
+                          <div className="flex items-center">
+                            <h3 className="text-lg font-semibold text-gray-900">{request.requester.name}</h3>
+                            <span className={`ml-3 px-3 py-1 rounded-full text-xs font-medium ${
+                              request.connection_type === 'partner' ? 'bg-purple-100 text-purple-800' :
+                              request.connection_type === 'supplier' ? 'bg-green-100 text-green-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {request.connection_type}
+                            </span>
+                          </div>
+                          <div className="flex items-center mt-1 text-sm text-gray-600">
+                            <span>{request.requester.industry}</span>
+                            <span className="mx-2">•</span>
+                            <MapPin className="h-4 w-4 mr-1" />
+                            <span>{request.requester.city}, {request.requester.country}</span>
+                            <span className="mx-2">•</span>
+                            <Users className="h-4 w-4 mr-1" />
+                            <span>{request.requester.employees}</span>
+                          </div>
+                          <p className="text-gray-700 mt-3 bg-gray-50 p-3 rounded-lg">{request.message}</p>
+                          <div className="flex items-center mt-3 space-x-4">
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                              <span className="text-sm font-medium">{request.requester.trust_score}</span>
+                              <span className="text-sm text-gray-500 ml-1">Trust Score</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              Requested {new Date(request.requested_date).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex space-x-3 ml-6">
+                        <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                          Accept
+                        </button>
+                        <button className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reviews Tab */}
+          {activeTab === 'reviews' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900">Reviews & Ratings</h2>
+                <div className="text-right">
+                  <div className="flex items-center justify-end">
+                    <Star className="h-6 w-6 text-yellow-500 mr-2" />
+                    <span className="text-2xl font-bold">4.7</span>
+                  </div>
+                  <p className="text-sm text-gray-500">Average rating from {mockReviews.length} reviews</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {mockReviews.map((review, index) => (
+                  <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-start">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                          {review.reviewer_logo}
+                        </div>
+                        <div className="ml-3">
+                          <h4 className="font-semibold text-gray-900">{review.reviewer}</h4>
+                          <div className="flex items-center mt-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                            <span className="ml-2 text-sm text-gray-500">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                        {review.review_type}
+                      </span>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">{review.review_text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+        </ErrorBoundary>
+      </main>
+    </div>
+  );
+}
