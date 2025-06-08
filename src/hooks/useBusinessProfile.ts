@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { Business, getCurrentBusiness, updateBusiness, uploadBusinessLogo } from '@/services/business.service';
 
 interface UseBusinessProfileReturn {
@@ -13,17 +13,18 @@ interface UseBusinessProfileReturn {
 }
 
 export function useBusinessProfile(): UseBusinessProfileReturn {
-  const { user, isLoading: isUserLoading } = useUser();
+  const { data: session, status } = useSession();
   const [business, setBusiness] = useState<Business | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const isUserLoading = status === 'loading';
 
   // Fetch business data when user is loaded
   useEffect(() => {
     if (isUserLoading) return;
-    if (!user) {
+    if (!session?.user) {
       setIsLoading(false);
       return;
     }
@@ -42,7 +43,7 @@ export function useBusinessProfile(): UseBusinessProfileReturn {
     }
 
     fetchBusinessData();
-  }, [user, isUserLoading]);
+  }, [session, isUserLoading]);
 
   // Update business profile
   const updateProfile = async (data: Partial<Business>) => {

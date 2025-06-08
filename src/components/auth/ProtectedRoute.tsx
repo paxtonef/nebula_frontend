@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -9,14 +9,15 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, error, isLoading } = useUser();
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const isLoading = status === 'loading';
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/api/auth/login');
+    if (!isLoading && status === 'unauthenticated') {
+      router.push('/login');
     }
-  }, [user, isLoading, router]);
+  }, [status, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -26,18 +27,18 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (error) {
+  if (status === 'unauthenticated') {
+    return null; // Will redirect in the useEffect
+  }
+
+  if (status === 'authenticated' && !session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p>Authentication Error: {error.message}</p>
+          <p>Authentication Error: Session is missing</p>
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null; // Will redirect in the useEffect
   }
 
   return <>{children}</>;

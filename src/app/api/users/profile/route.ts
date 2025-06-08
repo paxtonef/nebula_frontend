@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 
 export async function GET() {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session || !session.user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    // Return mock profile data based on Auth0 user
+    // Return mock profile data based on NextAuth user
     return NextResponse.json({
-      id: session.user.sub,
-      email: session.user.email,
-      name: session.user.name,
-      picture: session.user.picture,
+      id: session.user.id || session.user.email || 'user-id',
+      email: session.user.email || 'user@example.com',
+      name: session.user.name || 'User',
+      picture: session.user.image || null,
       business_profile: null,
       subscription: {
         tier: 'starter',

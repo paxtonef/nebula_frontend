@@ -12,6 +12,8 @@ export interface Business {
   email: string;
   phone: string;
   logo: string | null;
+  coverImage?: string;
+  founded?: string;
   trustScore: number;
   verificationStatus: string;
   createdAt: string;
@@ -19,11 +21,11 @@ export interface Business {
   services?: string[];
   certifications?: string[];
   address?: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
   };
   socialMedia?: {
     linkedin: string;

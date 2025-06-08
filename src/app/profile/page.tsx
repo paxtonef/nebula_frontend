@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// Using local card component created earlier
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,7 +20,8 @@ import { useBusinessProfile } from '@/hooks/useBusinessProfile';
 import { Business } from '@/services/business.service';
 
 export default function BusinessProfile() {
-  const { user, error: authError, isLoading: authLoading } = useUser();
+  const { data: session, status } = useSession();
+  const authLoading = status === 'loading';
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
@@ -56,16 +58,16 @@ export default function BusinessProfile() {
     </div>;
   }
 
-  if (authError || businessError) {
+  if (businessError) {
     return <div className="flex justify-center items-center h-screen">
-      <p>Error: {(authError || businessError)?.message}</p>
-      <Button onClick={() => router.push('/api/auth/login')} className="ml-4">Go to Login</Button>
+      <p>Error: {businessError?.message}</p>
+      <Button className="border border-gray-300 bg-white hover:bg-gray-100" onClick={() => router.push('/login')}>Go to Login</Button>
     </div>;
   }
 
-  if (!user) {
+  if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') {
-      router.push('/api/auth/login');
+      router.push('/login');
     }
     return null;
   }
@@ -80,21 +82,21 @@ export default function BusinessProfile() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => prev ? {
-      ...prev,
+    setFormData(prev => ({
+      ...prev!,
       [name]: value
-    } : null);
+    }));
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => prev ? {
-      ...prev,
+    setFormData(prev => ({
+      ...prev!,
       address: {
-        ...prev.address,
+        ...prev?.address || {},
         [name]: value
       }
-    } : null);
+    }));
   };
 
   const handleSave = async () => {
@@ -114,7 +116,7 @@ export default function BusinessProfile() {
     
     try {
       await uploadLogo(e.target.files[0]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading logo:', error);
       alert('Failed to upload logo. Please try again.');
     }
@@ -180,7 +182,7 @@ export default function BusinessProfile() {
         <div className="relative mb-8">
           <div className="h-64 w-full rounded-lg bg-gray-200 overflow-hidden">
             <img 
-              src={businessData.coverImage} 
+              src={business?.coverImage || '/images/default-cover.jpg'} 
               alt="Cover" 
               className="w-full h-full object-cover"
             />
@@ -232,12 +234,12 @@ export default function BusinessProfile() {
           </div>
           <div className="absolute bottom-4 right-4">
             {!isEditing ? (
-              <Button onClick={() => setIsEditing(true)}>
+              <Button className="border border-gray-300 bg-white hover:bg-gray-100" onClick={() => setIsEditing(true)}>
                 Edit Profile
               </Button>
             ) : (
               <div className="space-x-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <Button className="border border-gray-300 bg-white hover:bg-gray-100" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handleSave}>
@@ -279,7 +281,7 @@ export default function BusinessProfile() {
                           onChange={handleInputChange} 
                         />
                       ) : (
-                        <p className="text-gray-700">{businessData.name}</p>
+                        <p className="text-gray-700">{business.name}</p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -287,7 +289,7 @@ export default function BusinessProfile() {
                       {isEditing ? (
                         <Select 
                           value={formData.industry} 
-                          onValueChange={(value) => setFormData({...formData, industry: value})}
+                          onValueChange={(value: string) => setFormData({...formData, industry: value})}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select industry" />
@@ -301,7 +303,7 @@ export default function BusinessProfile() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <p className="text-gray-700">{businessData.industry}</p>
+                        <p className="text-gray-700">{business.industry}</p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -309,7 +311,7 @@ export default function BusinessProfile() {
                       {isEditing ? (
                         <Select 
                           value={formData.size} 
-                          onValueChange={(value) => setFormData({...formData, size: value})}
+                          onValueChange={(value: string) => setFormData({...formData, size: value})}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select size" />
@@ -323,7 +325,7 @@ export default function BusinessProfile() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <p className="text-gray-700">{businessData.size} employees</p>
+                        <p className="text-gray-700">{business.size} employees</p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -336,7 +338,7 @@ export default function BusinessProfile() {
                           onChange={handleInputChange} 
                         />
                       ) : (
-                        <p className="text-gray-700">{businessData.founded}</p>
+                        <p className="text-gray-700">{business?.founded || 'Not specified'}</p>
                       )}
                     </div>
                   </div>
@@ -351,7 +353,7 @@ export default function BusinessProfile() {
                         rows={4}
                       />
                     ) : (
-                      <p className="text-gray-700">{businessData.description}</p>
+                      <p className="text-gray-700">{business.description}</p>
                     )}
                   </div>
                 </CardContent>
@@ -382,8 +384,8 @@ export default function BusinessProfile() {
                         />
                       ) : (
                         <p className="text-gray-700">
-                          <a href={businessData.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-                            {businessData.website}
+                          <a href={business.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                            {business.website}
                           </a>
                         </p>
                       )}
@@ -401,8 +403,8 @@ export default function BusinessProfile() {
                         />
                       ) : (
                         <p className="text-gray-700">
-                          <a href={`mailto:${businessData.email}`} className="text-primary-600 hover:underline">
-                            {businessData.email}
+                          <a href={`mailto:${business.email}`} className="text-primary-600 hover:underline">
+                            {business.email}
                           </a>
                         </p>
                       )}
@@ -419,7 +421,7 @@ export default function BusinessProfile() {
                           onChange={handleInputChange} 
                         />
                       ) : (
-                        <p className="text-gray-700">{businessData.phone}</p>
+                        <p className="text-gray-700">{business.phone}</p>
                       )}
                     </div>
                   </div>
@@ -435,11 +437,11 @@ export default function BusinessProfile() {
                           <Input 
                             id="street" 
                             name="street" 
-                            value={formData.address.street} 
+                            value={formData?.address?.street} 
                             onChange={handleAddressChange} 
                           />
                         ) : (
-                          <p className="text-gray-700">{businessData.address.street}</p>
+                          <p className="text-gray-700">{business?.address?.street || 'Not specified'}</p>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -448,11 +450,11 @@ export default function BusinessProfile() {
                           <Input 
                             id="city" 
                             name="city" 
-                            value={formData.address.city} 
+                            value={formData?.address?.city} 
                             onChange={handleAddressChange} 
                           />
                         ) : (
-                          <p className="text-gray-700">{businessData.address.city}</p>
+                          <p className="text-gray-700">{business?.address?.city || 'Not specified'}</p>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -461,11 +463,11 @@ export default function BusinessProfile() {
                           <Input 
                             id="state" 
                             name="state" 
-                            value={formData.address.state} 
+                            value={formData?.address?.state} 
                             onChange={handleAddressChange} 
                           />
                         ) : (
-                          <p className="text-gray-700">{businessData.address.state}</p>
+                          <p className="text-gray-700">{business?.address?.state || 'Not specified'}</p>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -474,11 +476,11 @@ export default function BusinessProfile() {
                           <Input 
                             id="zip" 
                             name="zip" 
-                            value={formData.address.zip} 
+                            value={formData?.address?.zip} 
                             onChange={handleAddressChange} 
                           />
                         ) : (
-                          <p className="text-gray-700">{businessData.address.zip}</p>
+                          <p className="text-gray-700">{business?.address?.zip || 'Not specified'}</p>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -487,11 +489,11 @@ export default function BusinessProfile() {
                           <Input 
                             id="country" 
                             name="country" 
-                            value={formData.address.country} 
+                            value={formData?.address?.country} 
                             onChange={handleAddressChange} 
                           />
                         ) : (
-                          <p className="text-gray-700">{businessData.address.country}</p>
+                          <p className="text-gray-700">{business?.address?.country || 'Not specified'}</p>
                         )}
                       </div>
                     </div>
