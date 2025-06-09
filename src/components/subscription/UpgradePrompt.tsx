@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { GradientText } from '@/components/ui/GradientText';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { GradientText } from '@/components/ui/gradienttext';
 import { Crown, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -100,7 +100,7 @@ export function UpgradePrompt({
           <p className="ml-2 text-sm font-medium">{content.title}</p>
         </div>
         <Link href="/billing">
-          <Button size="sm" variant="primary">
+          <Button className="bg-blue-600 text-white hover:bg-blue-700 text-sm px-3 py-1">
             Upgrade
           </Button>
         </Link>
@@ -144,13 +144,13 @@ export function UpgradePrompt({
           
           <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/billing" className="flex-1">
-              <Button variant="primary" fullWidth>
+              <Button className="bg-blue-600 text-white hover:bg-blue-700 w-full">
                 {content.cta}
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
             <Link href="/pricing" className="flex-1">
-              <Button variant="outline" fullWidth>
+              <Button className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 w-full">
                 Compare Plans
               </Button>
             </Link>

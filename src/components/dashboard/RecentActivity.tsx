@@ -1,15 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { TrustScore } from '@/components/business/TrustScore';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import TrustScore from '@/components/business/TrustScore';
 import { 
   UserCheck, 
   MessageSquare, 
   Calendar, 
   Star, 
-  HandshakeIcon, 
   Clock, 
   ArrowRight 
 } from 'lucide-react';
@@ -75,7 +74,7 @@ export function RecentActivity({
       case 'review':
         return <Star className="w-5 h-5 text-amber-500" />;
       case 'deal':
-        return <HandshakeIcon className="w-5 h-5 text-cyan-500" />;
+        return <UserCheck className="w-5 h-5 text-cyan-500" />;
       case 'introduction':
         return <UserCheck className="w-5 h-5 text-indigo-500" />;
       default:
