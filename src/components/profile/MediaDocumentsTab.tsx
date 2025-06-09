@@ -2,8 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Upload, Image, FileText, X, Plus, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@/components/ui';
 import { Business } from '@/services/business.service';
 
 interface MediaItem {
