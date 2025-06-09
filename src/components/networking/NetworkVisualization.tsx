@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card } from '@/components/ui';
+import { Card } from '@/components/ui/card';
 
 interface Node {
   id: string;

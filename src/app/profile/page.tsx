@@ -5,15 +5,13 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import Link from 'next/link';
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
-  Button,
-  Input,
-  Textarea,
-  Label,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from '@/components/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Building, Phone, Globe, Mail, Camera, Upload, Loader2 } from 'lucide-react';
 import ServicesProductsTab from '@/components/profile/ServicesProductsTab';
 import MediaDocumentsTab from '@/components/profile/MediaDocumentsTab';

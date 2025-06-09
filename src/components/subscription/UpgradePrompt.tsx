@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card, Button, GradientText } from '@/components/ui';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { GradientText } from '@/components/ui/gradienttext';
 import { Crown, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 

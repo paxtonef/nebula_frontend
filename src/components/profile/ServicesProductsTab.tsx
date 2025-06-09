@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { PlusCircle, X, Award, Package } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input } from '@/components/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Business } from '@/services/business.service';
 
 interface ServicesProductsTabProps {
