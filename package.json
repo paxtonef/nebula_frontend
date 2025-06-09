@@ -6,8 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "vercel-build": "npm install && npm run build"
+    "lint": "next lint"
   },
   "resolutions": {
     "rimraf": "^4.4.1",
