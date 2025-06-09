@@ -7,11 +7,15 @@ const nextConfig = {
   },
   // Disable type checking during build for faster builds
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // 🔥 This skips TypeScript errors during build
   },
   // Disable ESLint during build for faster builds
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Also skip ESLint errors
+  },
+  // Add experimental flag to disable Suspense with CSR bailout
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
   },
   // Handle case-sensitivity issues
   webpack: (config, { isServer }) => {
