@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
@@ -20,7 +20,8 @@ import MediaDocumentsTab from '@/components/profile/MediaDocumentsTab';
 import { useBusinessProfile } from '@/hooks/useBusinessProfile';
 import { Business } from '@/services/business.service';
 
-export default function BusinessProfile() {
+// Content component that uses useSearchParams
+function BusinessProfileContent() {
   const { data: session, status } = useSession();
   const authLoading = status === 'loading';
   const router = useRouter();
@@ -526,5 +527,14 @@ export default function BusinessProfile() {
         </div>
       </div>
     </AuthenticatedLayout>
+  );
+}
+
+// Main page component that wraps the content in a Suspense boundary
+export default function BusinessProfile() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BusinessProfileContent />
+    </Suspense>
   );
 }

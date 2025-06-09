@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Filter, MapPin, Building2, Users, ChevronDown, ChevronUp } from 'lucide-react';
@@ -87,7 +87,8 @@ const SIZES = [
   'MEDIUM',
 ];
 
-export default function BusinessesPage() {
+// Content component that uses useSearchParams
+function BusinessesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -315,5 +316,14 @@ export default function BusinessesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Main page component that wraps the content in a Suspense boundary
+export default function BusinessesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BusinessesContent />
+    </Suspense>
   );
 }
