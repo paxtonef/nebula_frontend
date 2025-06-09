@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export default function ApiTestPage() {
   const [healthStatus, setHealthStatus] = useState<{ status?: string; message?: string; timestamp?: string } | null>(null);
