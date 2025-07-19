@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ScatterChart, Scatter } from 'recharts';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Target, Users, DollarSign, Globe, Shield, Zap, FileText, Download, RefreshCw, Play, Database, BarChart3 } from 'lucide-react';
